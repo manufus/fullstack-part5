@@ -1,0 +1,11 @@
+POST http://localhost:3003/api/blogs HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkVMUExBTiBFTFBMQU4iLCJpZCI6IjY3YzVmZDU1MGJlYjMxYTMwODA5NjZkMiIsImlhdCI6MTc0MTExMDQ0MH0.MuQlTi2WIrOy6DRLW_z7LLBcofi8dkjyM7By3wP3ClE
+
+
+{
+    "title": "Title 5",
+    "author": "5",
+    "url": "asdfg.5",
+    "likes": 55
+}
