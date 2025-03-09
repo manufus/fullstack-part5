@@ -171,6 +171,7 @@ const App = () => {
               blog={blog}
               addLike={() => addLike(blog)}
               remove={() => remove(blog.id)}
+              currentUser={user.username} // Pass the current user's username
             />
           ))}
       </div>

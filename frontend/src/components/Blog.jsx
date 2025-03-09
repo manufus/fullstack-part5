@@ -1,7 +1,9 @@
 import { useState } from 'react'
 
-const Blog = ({ blog, addLike, remove }) => {
+const Blog = ({ blog, addLike, remove, currentUser }) => {
   const [showDetails, setShowDetails] = useState(false)
+
+  const showDeleteButton = currentUser === blog.user.username
 
   return (
     <div>
@@ -17,7 +19,7 @@ const Blog = ({ blog, addLike, remove }) => {
           <p>likes {blog.likes}</p>
           <button onClick={addLike}>like</button>
           <p>{blog.user.name}</p>
-          <button onClick={remove}>delete</button>
+          {showDeleteButton && <button onClick={remove}>delete</button>}
         </div>
       )}
     </div>
