@@ -8,6 +8,11 @@ const App = () => {
   const [username, setUsername] = useState('')
   const [user, setUser] = useState(null)
   const [password, setPassword] = useState('')
+  const [newBlog, setNewBlog] = useState({
+    title: '',
+    author: '',
+    url: '',
+  })
 
   useEffect(() => {
     blogService.getAll().then((blogs) => setBlogs(blogs))
@@ -18,7 +23,7 @@ const App = () => {
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON)
       setUser(user)
-      //blogService.setToken(user.token)
+      blogService.setToken(user.token)
     }
   }, [])
 
@@ -31,7 +36,7 @@ const App = () => {
         password,
       })
       window.localStorage.setItem('loggedBlogappUser', JSON.stringify(user))
-      //blogService.setToken(user.token)
+      blogService.setToken(user.token)
       setUser(user)
       setUsername('')
       setPassword('')
@@ -76,6 +81,56 @@ const App = () => {
     </form>
   )
 
+  const handleBlogChange = (event) => {
+    const { name, value } = event.target
+    setNewBlog({
+      ...newBlog,
+      [name.toLowerCase()]: value,
+    })
+  }
+
+  const sendBlog = (event) => {
+    event.preventDefault()
+
+    blogService.create(newBlog).then((returnedBlog) => {
+      setBlogs(blogs.concat(returnedBlog))
+      setNewBlog({ title: '', author: '', url: '' })
+    })
+  }
+
+  const blogForm = () => (
+    <form onSubmit={sendBlog}>
+      <div>
+        title
+        <input
+          type="text"
+          value={newBlog.title}
+          name="title"
+          onChange={handleBlogChange}
+        />
+      </div>
+      <div>
+        author
+        <input
+          type="text"
+          value={newBlog.author}
+          name="author"
+          onChange={handleBlogChange}
+        />
+      </div>
+      <div>
+        url
+        <input
+          type="text"
+          value={newBlog.url}
+          name="url"
+          onChange={handleBlogChange}
+        />
+      </div>
+      <button type="submit">add blog</button>
+    </form>
+  )
+
   return (
     <div>
       {user === null ? (
@@ -86,6 +141,7 @@ const App = () => {
           <button onClick={handleLogout} type="submit">
             logout
           </button>
+          {blogForm()}
         </div>
       )}
       <div>
