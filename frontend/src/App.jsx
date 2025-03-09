@@ -11,7 +11,6 @@ const App = () => {
   const [username, setUsername] = useState('')
   const [user, setUser] = useState(null)
   const [password, setPassword] = useState('')
-
   const [notificationMessage, setNotficationMessage] = useState('')
 
   const blogFormRef = useRef()
@@ -115,10 +114,17 @@ const App = () => {
     }
   }
 
-  const addLike = (blog) => {
-    const newBlog = { ...blog, likes: blog.likes + 1 }
-    console.log(newBlog.likes)
-    blogService.update(blog.id, newBlog)
+  const addLike = async (blog) => {
+    try {
+      const updatedBlog = { ...blog, likes: blog.likes + 1 }
+      const returnedBlog = await blogService.update(blog.id, updatedBlog)
+      setBlogs(blogs.map((b) => (b.id === blog.id ? returnedBlog : b)))
+    } catch (error) {
+      setNotficationMessage('Error updating likes')
+      setTimeout(() => {
+        setNotficationMessage('')
+      }, 4000)
+    }
   }
 
   return (
@@ -139,9 +145,11 @@ const App = () => {
       )}
       <div>
         <h2>Blogs</h2>
-        {blogs.map((blog) => (
-          <Blog key={blog.id} blog={blog} addLike={() => addLike(blog)} />
-        ))}
+        {blogs
+          .sort((a, b) => b.likes - a.likes)
+          .map((blog) => (
+            <Blog key={blog.id} blog={blog} addLike={() => addLike(blog)} />
+          ))}
       </div>
     </div>
   )
