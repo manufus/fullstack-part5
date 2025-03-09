@@ -1,20 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import loginService from './services/login'
 import blogService from './services/blogs'
 import Notification from './components/Notification'
+import Togglable from './components/Togglable'
+import BlogForm from './components/BlogForm'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
   const [username, setUsername] = useState('')
   const [user, setUser] = useState(null)
   const [password, setPassword] = useState('')
-  const [newBlog, setNewBlog] = useState({
-    title: '',
-    author: '',
-    url: '',
-  })
+
   const [notificationMessage, setNotficationMessage] = useState('')
+
+  const blogFormRef = useRef()
 
   useEffect(() => {
     blogService.getAll().then((blogs) => setBlogs(blogs))
@@ -97,20 +97,11 @@ const App = () => {
     </form>
   )
 
-  const handleBlogChange = (event) => {
-    const { name, value } = event.target
-    setNewBlog({
-      ...newBlog,
-      [name.toLowerCase()]: value,
-    })
-  }
-
-  const sendBlog = (event) => {
-    event.preventDefault()
+  const sendBlog = (blogObject) => {
+    blogFormRef.current.toggleVisibility()
     try {
-      blogService.create(newBlog).then((returnedBlog) => {
+      blogService.create(blogObject).then((returnedBlog) => {
         setBlogs(blogs.concat(returnedBlog))
-        setNewBlog({ title: '', author: '', url: '' })
         setNotficationMessage('blog successfully created')
         setTimeout(() => {
           setNotficationMessage('')
@@ -124,39 +115,6 @@ const App = () => {
     }
   }
 
-  const blogForm = () => (
-    <form onSubmit={sendBlog}>
-      <div>
-        title
-        <input
-          type="text"
-          value={newBlog.title}
-          name="title"
-          onChange={handleBlogChange}
-        />
-      </div>
-      <div>
-        author
-        <input
-          type="text"
-          value={newBlog.author}
-          name="author"
-          onChange={handleBlogChange}
-        />
-      </div>
-      <div>
-        url
-        <input
-          type="text"
-          value={newBlog.url}
-          name="url"
-          onChange={handleBlogChange}
-        />
-      </div>
-      <button type="submit">add blog</button>
-    </form>
-  )
-
   return (
     <div>
       <Notification message={notificationMessage} />
@@ -168,7 +126,13 @@ const App = () => {
           <button onClick={handleLogout} type="submit">
             logout
           </button>
-          {blogForm()}
+          <Togglable buttonLabel="New Blog" ref={blogFormRef}>
+            <BlogForm
+              // onSubmit={sendBlog}
+              // handleBlogChange={handleBlogChange}
+              createBlog={sendBlog}
+            />
+          </Togglable>
         </div>
       )}
       <div>
