@@ -1,4 +1,5 @@
 const blogsRouter = require('express').Router()
+const { request } = require('express')
 // const { request, response } = require('../app')
 const Blog = require('../models/blog')
 const User = require('../models/user')
@@ -46,18 +47,40 @@ blogsRouter.delete('/:id', userExtractor, async (request, response) => {
   response.status(204).end()
 })
 
-blogsRouter.patch('/:id', async (request, response) => {
+// blogsRouter.patch('/:id', async (request, response) => {
+//   const { id } = request.params
+//   const { likes } = request.body
+
+//   const updatedBlog = await Blog.findByIdAndUpdate(
+//     id,
+//     { likes },
+//     { new: true, runValidators: true }
+//   )
+
+//   if (!updatedBlog) {
+//     return response.status(404).end()
+//   }
+
+//   response.json(updatedBlog)
+// })
+
+blogsRouter.put('/:id', userExtractor, async (request, response) => {
   const { id } = request.params
-  const { likes } = request.body
+  const body = request.body
 
   const updatedBlog = await Blog.findByIdAndUpdate(
     id,
-    { likes },
+    {
+      title: body.title,
+      author: body.author,
+      url: body.url,
+      likes: body.likes,
+    },
     { new: true, runValidators: true }
-  )
+  ).populate('user', { username: 1, name: 1 })
 
   if (!updatedBlog) {
-    return response.status(404).end()
+    return response.status(404).json({ error: 'blog not found' })
   }
 
   response.json(updatedBlog)

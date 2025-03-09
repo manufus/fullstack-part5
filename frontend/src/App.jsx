@@ -115,6 +115,12 @@ const App = () => {
     }
   }
 
+  const addLike = (blog) => {
+    const newBlog = { ...blog, likes: blog.likes + 1 }
+    console.log(newBlog.likes)
+    blogService.update(blog.id, newBlog)
+  }
+
   return (
     <div>
       <Notification message={notificationMessage} />
@@ -134,7 +140,7 @@ const App = () => {
       <div>
         <h2>Blogs</h2>
         {blogs.map((blog) => (
-          <Blog key={blog.id} blog={blog} />
+          <Blog key={blog.id} blog={blog} addLike={() => addLike(blog)} />
         ))}
       </div>
     </div>
