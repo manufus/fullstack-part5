@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
 import loginService from './services/login'
 import blogService from './services/blogs'
+import Notification from './components/Notification'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -13,6 +14,7 @@ const App = () => {
     author: '',
     url: '',
   })
+  const [notificationMessage, setNotficationMessage] = useState('')
 
   useEffect(() => {
     blogService.getAll().then((blogs) => setBlogs(blogs))
@@ -40,8 +42,15 @@ const App = () => {
       setUser(user)
       setUsername('')
       setPassword('')
+      setNotficationMessage('login successful')
+      setTimeout(() => {
+        setNotficationMessage('')
+      }, 4000)
     } catch (exception) {
-      window.alert(exception)
+      setNotficationMessage('wrong credentials')
+      setTimeout(() => {
+        setNotficationMessage('')
+      }, 4000)
     }
   }
 
@@ -51,8 +60,15 @@ const App = () => {
     try {
       window.localStorage.removeItem('loggedBlogappUser')
       setUser(null)
+      setNotficationMessage('logout successful')
+      setTimeout(() => {
+        setNotficationMessage('')
+      }, 4000)
     } catch (error) {
-      window.alert(error)
+      setNotficationMessage(error)
+      setTimeout(() => {
+        setNotficationMessage('')
+      }, 4000)
     }
   }
 
@@ -91,11 +107,21 @@ const App = () => {
 
   const sendBlog = (event) => {
     event.preventDefault()
-
-    blogService.create(newBlog).then((returnedBlog) => {
-      setBlogs(blogs.concat(returnedBlog))
-      setNewBlog({ title: '', author: '', url: '' })
-    })
+    try {
+      blogService.create(newBlog).then((returnedBlog) => {
+        setBlogs(blogs.concat(returnedBlog))
+        setNewBlog({ title: '', author: '', url: '' })
+        setNotficationMessage('blog successfully created')
+        setTimeout(() => {
+          setNotficationMessage('')
+        }, 4000)
+      })
+    } catch (error) {
+      setNotficationMessage(error)
+      setTimeout(() => {
+        setNotficationMessage('')
+      }, 4000)
+    }
   }
 
   const blogForm = () => (
@@ -133,6 +159,7 @@ const App = () => {
 
   return (
     <div>
+      <Notification message={notificationMessage} />
       {user === null ? (
         loginForm()
       ) : (
