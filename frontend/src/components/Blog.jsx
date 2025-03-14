@@ -7,7 +7,7 @@ const Blog = ({ blog, addLike, remove, currentUser }) => {
   const showDeleteButton = currentUser === blog.user.username
 
   return (
-    <div>
+    <div className="blog">
       <div>
         {blog.title} {blog.author}
         <button onClick={() => setShowDetails(!showDetails)}>
