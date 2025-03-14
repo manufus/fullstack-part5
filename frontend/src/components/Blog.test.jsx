@@ -44,3 +44,27 @@ test('URL and likes shown after clicking', async () => {
   expect(div).toHaveTextContent('madrid.com')
   expect(div).toHaveTextContent('33')
 })
+
+test.only('Like button clicked twice', async () => {
+  const blog = {
+    author: 'CR7',
+    title: 'THE GOAT',
+    url: 'madrid.com',
+    likes: 33,
+    user: {
+      username: 'tumadre',
+    },
+  }
+
+  const mockHandler = vi.fn()
+
+  render(<Blog addLike={mockHandler} blog={blog} />)
+  const user = userEvent.setup()
+  const showDetailsButton = screen.getByText('view')
+  await user.click(showDetailsButton)
+  const button = screen.getByText('like')
+  await user.click(button)
+  await user.click(button)
+
+  expect(mockHandler.mock.calls).toHaveLength(2)
+})
