@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import Blog from './Blog'
-import { expect } from 'vitest'
+import { expect, vi, test } from 'vitest'
 import userEvent from '@testing-library/user-event'
 
 test('renders blogs title and author', () => {
