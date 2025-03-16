@@ -163,7 +163,7 @@ const App = () => {
           </Togglable>
         </div>
       )}
-      <div>
+      <div className="blog-lists">
         <h2>Blogs</h2>
         {blogs
           .sort((a, b) => b.likes - a.likes)

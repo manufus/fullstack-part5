@@ -38,4 +38,31 @@ describe('Blog app', () => {
       await expect(page.getByText('wrong credentials')).toBeVisible()
     })
   })
+
+  describe('When logged in', () => {
+    beforeEach(async ({ page }) => {
+      await page.getByPlaceholder('username').fill('Alonso')
+      await page.getByPlaceholder('password').fill('la33la33')
+      await page.getByText('submit login').click()
+    })
+
+    test('a new blog can be created', async ({ page }) => {
+      const blogCreate = {
+        title: 'Carlos',
+        author: 'Sainz',
+        url: 'williams.com',
+      }
+      await page.getByText('New Blog').click()
+      await page.getByPlaceholder('title of the blog').fill(blogCreate.title)
+      await page.getByPlaceholder('author of the blog').fill(blogCreate.author)
+      await page.getByPlaceholder('url of the blog').fill(blogCreate.url)
+      await page.getByText('add blog').click()
+
+      const blogsDiv = page.locator('.blog-lists')
+      await page.getByText('view').click()
+      await expect(blogsDiv).toContainText('Carlos')
+      await expect(blogsDiv).toContainText('Sainz')
+      await expect(blogsDiv).toContainText('williams.com')
+    })
+  })
 })
