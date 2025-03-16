@@ -24,7 +24,11 @@ const Blog = ({ blog, addLike, remove, currentUser }) => {
             like
           </button>
           <p>{blog.user.name}</p>
-          {showDeleteButton && <button onClick={remove}>delete</button>}
+          {showDeleteButton && (
+            <button data-testid="delete-button" onClick={remove}>
+              delete
+            </button>
+          )}
         </div>
       )}
     </div>

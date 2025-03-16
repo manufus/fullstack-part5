@@ -93,5 +93,35 @@ describe('Blog app', () => {
       const likesAfter = await likesCount.textContent()
       expect(Number(likesAfter)).toBe(Number(likesBefore) + 1)
     })
+
+    test('a user can delete its blog', async ({ page }) => {
+      const blogCreate = {
+        title: 'Carlos',
+        author: 'Sainz',
+        url: 'williams.com',
+      }
+      await page.getByText('New Blog').click()
+      await page.getByPlaceholder('title of the blog').fill(blogCreate.title)
+      await page.getByPlaceholder('author of the blog').fill(blogCreate.author)
+      await page.getByPlaceholder('url of the blog').fill(blogCreate.url)
+      await page.getByText('add blog').click()
+
+      // Show blog details first
+      await expect(page.getByText('Carlos')).toBeVisible()
+      await page.getByText('view').click()
+
+      // Delete the blog
+      const deleteButton = await page.getByTestId('delete-button')
+      await expect(deleteButton).toBeVisible()
+
+      page.on('dialog', async (dialog) => {
+        expect(dialog.type()).toContain('confirm')
+        expect(dialog.message()).toContain('Do you want to remove the blog?')
+        await dialog.accept()
+      })
+      await deleteButton.click()
+
+      await expect(page.getByText('Carlos')).not.toBeVisible()
+    })
   })
 })
