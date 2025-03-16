@@ -64,5 +64,31 @@ describe('Blog app', () => {
       await expect(blogsDiv).toContainText('Sainz')
       await expect(blogsDiv).toContainText('williams.com')
     })
+
+    test('a blog can be liked', async ({ page }) => {
+      const blogCreate = {
+        title: 'Carlos',
+        author: 'Sainz',
+        url: 'williams.com',
+      }
+      await page.getByText('New Blog').click()
+      await page.getByPlaceholder('title of the blog').fill(blogCreate.title)
+      await page.getByPlaceholder('author of the blog').fill(blogCreate.author)
+      await page.getByPlaceholder('url of the blog').fill(blogCreate.url)
+      await page.getByText('add blog').click()
+      await page.getByText('view').click()
+
+      //New part of the test
+      const likesButton = await page.getByTestId('likesButton')
+      await expect(likesButton).toBeVisible()
+
+      const likesBefore = await page.getByTestId('likes-count').textContent()
+      await likesButton.click()
+      await expect(page.getByTestId('likes-count')).not.toHaveText(likesBefore)
+      const likesAfter = await page.getByTestId('likes-count').textContent()
+      console.log(likesBefore, likesAfter)
+
+      await expect(Number(likesAfter)).toBe(Number(likesBefore) + 1)
+    })
   })
 })

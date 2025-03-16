@@ -98,18 +98,17 @@ const App = () => {
     </form>
   )
 
-  const sendBlog = (blogObject) => {
-    blogFormRef.current.toggleVisibility()
+  const sendBlog = async (blogObject) => {
     try {
-      blogService.create(blogObject).then((returnedBlog) => {
-        setBlogs(blogs.concat(returnedBlog))
-        setNotficationMessage('blog successfully created')
-        setTimeout(() => {
-          setNotficationMessage('')
-        }, 4000)
-      })
+      blogFormRef.current.toggleVisibility()
+      const returnedBlog = await blogService.create(blogObject)
+      setBlogs(blogs.concat(returnedBlog))
+      setNotficationMessage('blog successfully created')
+      setTimeout(() => {
+        setNotficationMessage('')
+      }, 4000)
     } catch (error) {
-      setNotficationMessage(error)
+      setNotficationMessage(error.message)
       setTimeout(() => {
         setNotficationMessage('')
       }, 4000)
