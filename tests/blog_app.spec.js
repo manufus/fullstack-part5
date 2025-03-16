@@ -76,19 +76,22 @@ describe('Blog app', () => {
       await page.getByPlaceholder('author of the blog').fill(blogCreate.author)
       await page.getByPlaceholder('url of the blog').fill(blogCreate.url)
       await page.getByText('add blog').click()
+
+      // Show blog details first
       await page.getByText('view').click()
 
-      //New part of the test
-      const likesButton = await page.getByTestId('likesButton')
-      await expect(likesButton).toBeVisible()
+      // Get initial likes count
+      const likesCount = await page.getByTestId('likes-count')
+      const likesBefore = await likesCount.textContent()
 
-      const likesBefore = await page.getByTestId('likes-count').textContent()
-      await likesButton.click()
-      await expect(page.getByTestId('likes-count')).not.toHaveText(likesBefore)
-      const likesAfter = await page.getByTestId('likes-count').textContent()
-      console.log(likesBefore, likesAfter)
+      // Click like button and wait for update
+      await page.getByTestId('likesButton').click()
+      // Wait for the count to update
+      await expect(likesCount).not.toHaveText(likesBefore)
 
-      await expect(Number(likesAfter)).toBe(Number(likesBefore) + 1)
+      // Verify the count increased
+      const likesAfter = await likesCount.textContent()
+      expect(Number(likesAfter)).toBe(Number(likesBefore) + 1)
     })
   })
 })
