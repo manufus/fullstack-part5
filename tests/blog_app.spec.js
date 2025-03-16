@@ -123,5 +123,47 @@ describe('Blog app', () => {
 
       await expect(page.getByText('Carlos')).not.toBeVisible()
     })
+
+    test('different user cannot delete others blog', async ({
+      page,
+      request,
+    }) => {
+      const blogCreate = {
+        title: 'Carlos',
+        author: 'Sainz',
+        url: 'williams.com',
+      }
+      await page.getByText('New Blog').click()
+      await page.getByPlaceholder('title of the blog').fill(blogCreate.title)
+      await page.getByPlaceholder('author of the blog').fill(blogCreate.author)
+      await page.getByPlaceholder('url of the blog').fill(blogCreate.url)
+      await page.getByText('add blog').click()
+
+      // Show blog details first
+      await expect(page.getByText('Carlos')).toBeVisible()
+      await page.getByText('view').click()
+      const deleteButton = await page.getByTestId('delete-button')
+      await expect(deleteButton).toBeVisible()
+
+      // Log out and log in with second user
+      await page.getByTestId('logout-button').click()
+      await expect(page.getByText('logout successful')).toBeVisible()
+      await request.post('http://localhost:3003/api/users', {
+        data: {
+          name: 'Marc',
+          username: 'Marquez',
+          password: '90victorias',
+        },
+      })
+      await page.goto('http://localhost:5173')
+
+      await page.getByPlaceholder('username').fill('Marquez')
+      await page.getByPlaceholder('password').fill('90victorias')
+      await page.getByText('submit login').click()
+
+      await expect(page.getByText('Carlos')).toBeVisible()
+      await page.getByText('view').click()
+      await expect(page.getByTestId('delete-button')).not.toBeVisible()
+    })
   })
 })

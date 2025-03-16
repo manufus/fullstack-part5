@@ -154,28 +154,32 @@ const App = () => {
       ) : (
         <div>
           <p>{user.name} logged-in</p>
-          <button onClick={handleLogout} type="submit">
+          <button
+            data-testid="logout-button"
+            onClick={handleLogout}
+            type="submit"
+          >
             logout
           </button>
           <Togglable buttonLabel="New Blog" ref={blogFormRef}>
             <BlogForm createBlog={sendBlog} />
           </Togglable>
+          <div className="blog-lists">
+            <h2>Blogs</h2>
+            {blogs
+              .sort((a, b) => b.likes - a.likes)
+              .map((blog) => (
+                <Blog
+                  key={blog.id}
+                  blog={blog}
+                  addLike={() => addLike(blog)}
+                  remove={() => remove(blog.id)}
+                  currentUser={user.username}
+                />
+              ))}
+          </div>
         </div>
       )}
-      <div className="blog-lists">
-        <h2>Blogs</h2>
-        {blogs
-          .sort((a, b) => b.likes - a.likes)
-          .map((blog) => (
-            <Blog
-              key={blog.id}
-              blog={blog}
-              addLike={() => addLike(blog)}
-              remove={() => remove(blog.id)}
-              currentUser={user.username} // Pass the current user's username
-            />
-          ))}
-      </div>
     </div>
   )
 }
