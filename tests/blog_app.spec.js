@@ -1,4 +1,5 @@
 const { test, expect, beforeEach, describe } = require('@playwright/test')
+const { title } = require('process')
 
 describe('Blog app', () => {
   beforeEach(async ({ page, request }) => {
@@ -8,6 +9,13 @@ describe('Blog app', () => {
         name: 'Fernando',
         username: 'Alonso',
         password: 'la33la33',
+      },
+    })
+    await request.post('http://localhost:3003/api/users', {
+      data: {
+        name: 'Marc',
+        username: 'Marquez',
+        password: '90victorias',
       },
     })
     await page.goto('http://localhost:5173')
@@ -40,7 +48,22 @@ describe('Blog app', () => {
   })
 
   describe('When logged in', () => {
-    beforeEach(async ({ page }) => {
+    let token
+    beforeEach(async ({ page, request }) => {
+      // Login to get token
+      const loginResponse = await request.post(
+        'http://localhost:3003/api/login',
+        {
+          data: {
+            username: 'Alonso',
+            password: 'la33la33',
+          },
+        }
+      )
+      const loginData = await loginResponse.json()
+      token = loginData.token
+
+      // Login in UI
       await page.getByPlaceholder('username').fill('Alonso')
       await page.getByPlaceholder('password').fill('la33la33')
       await page.getByText('submit login').click()
@@ -164,6 +187,91 @@ describe('Blog app', () => {
       await expect(page.getByText('Carlos')).toBeVisible()
       await page.getByText('view').click()
       await expect(page.getByTestId('delete-button')).not.toBeVisible()
+    })
+
+    test('blogs are arranged in order of likes', async ({ page, request }) => {
+      await expect(page.getByText('Fernando logged-in')).toBeVisible()
+
+      // Blogs loaded and navigated back to main page
+      await request.post('http://localhost:3003/api/blogs', {
+        data: {
+          title: 'Third likes',
+          author: 'cs55',
+          url: 'ferrari.com',
+          likes: 13,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      await request.post('http://localhost:3003/api/blogs', {
+        data: {
+          title: 'Most likes',
+          author: 'mm93',
+          url: 'ducati.com',
+          likes: 90,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      await request.post('http://localhost:3003/api/blogs', {
+        data: {
+          title: 'Second likes',
+          author: 'fa14',
+          url: 'astonmartin.com',
+          likes: 33,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      await page.goto('http://localhost:5173')
+
+      // Wait for blogs to render
+      await expect(page.getByText('Most Likes')).toBeVisible()
+
+      // // Logout and wait for confirmation message
+      // await page.getByTestId('logout-button').click()
+      // await expect(page.getByText('logout successful')).toBeVisible()
+
+      // // Login in as new user
+      // await page.getByPlaceholder('username').fill('Marquez')
+      // await page.getByPlaceholder('password').fill('90victorias')
+      // await page.getByText('submit login').click()
+      // await expect(page.getByText('login successful')).toBeVisible()
+
+      // Per each blog, I need to display the details viewDetailsButton
+      await page.getByTestId('viewDetailsButton').first().click()
+      await expect(page.getByText('likes 90')).toBeVisible()
+      await page.getByTestId('viewDetailsButton').nth(1).click()
+      await expect(page.getByText('likes 33')).toBeVisible()
+      await page.getByTestId('viewDetailsButton').nth(2).click()
+      await expect(page.getByText('likes 3')).toBeVisible()
+      // likes 1
+      // 1) <button data-testid="viewDetailsButton">view</button> aka getByTestId('viewDetailsButton').first()
+      // 2) <button data-testid="viewDetailsButton">view</button> aka getByTestId('viewDetailsButton').nth(1)
+      // 3) <button data-testid="viewDetailsButton">view</button> aka getByTestId('viewDetailsButton').nth(2)
+
+      // Now I need to test the order of the texts "likes ${number}"
+      // Get likes counts using the data-testid
+      const firstLikes = await page
+        .getByTestId('likes-count')
+        .first()
+        .textContent()
+      const secondLikes = await page
+        .getByTestId('likes-count')
+        .nth(1)
+        .textContent()
+      const thirdLikes = await page
+        .getByTestId('likes-count')
+        .nth(2)
+        .textContent()
+
+      // Convert to numbers and compare
+      expect(Number(firstLikes)).toBeGreaterThan(Number(secondLikes))
+      expect(Number(secondLikes)).toBeGreaterThan(Number(thirdLikes))
     })
   })
 })

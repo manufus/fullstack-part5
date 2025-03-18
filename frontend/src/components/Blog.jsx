@@ -10,7 +10,10 @@ const Blog = ({ blog, addLike, remove, currentUser }) => {
     <div className="blog">
       <div>
         {blog.title} {blog.author}
-        <button onClick={() => setShowDetails(!showDetails)}>
+        <button
+          data-testid="viewDetailsButton"
+          onClick={() => setShowDetails(!showDetails)}
+        >
           {showDetails ? 'hide' : 'view'}
         </button>
       </div>
