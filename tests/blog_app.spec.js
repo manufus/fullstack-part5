@@ -1,5 +1,36 @@
 const { test, expect, beforeEach, describe } = require('@playwright/test')
-const { title } = require('process')
+
+// Test data
+const testBlogs = [
+  {
+    title: 'Most likes',
+    author: 'mm93',
+    url: 'ducati.com',
+    likes: 90,
+  },
+  {
+    title: 'Second likes',
+    author: 'fa14',
+    url: 'astonmartin.com',
+    likes: 33,
+  },
+  {
+    title: 'Third likes',
+    author: 'cs55',
+    url: 'ferrari.com',
+    likes: 13,
+  },
+]
+
+// Helper function
+const createBlog = async (request, blog, token) => {
+  await request.post('http://localhost:3003/api/blogs', {
+    data: blog,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+}
 
 describe('Blog app', () => {
   beforeEach(async ({ page, request }) => {
@@ -192,86 +223,29 @@ describe('Blog app', () => {
     test('blogs are arranged in order of likes', async ({ page, request }) => {
       await expect(page.getByText('Fernando logged-in')).toBeVisible()
 
-      // Blogs loaded and navigated back to main page
-      await request.post('http://localhost:3003/api/blogs', {
-        data: {
-          title: 'Third likes',
-          author: 'cs55',
-          url: 'ferrari.com',
-          likes: 13,
-        },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      await request.post('http://localhost:3003/api/blogs', {
-        data: {
-          title: 'Most likes',
-          author: 'mm93',
-          url: 'ducati.com',
-          likes: 90,
-        },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      await request.post('http://localhost:3003/api/blogs', {
-        data: {
-          title: 'Second likes',
-          author: 'fa14',
-          url: 'astonmartin.com',
-          likes: 33,
-        },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      // Create blogs in parallel
+      await Promise.all(
+        testBlogs.map((blog) => createBlog(request, blog, token))
+      )
 
-      await page.goto('http://localhost:5173')
+      await page.reload()
 
-      // Wait for blogs to render
-      await expect(page.getByText('Most Likes')).toBeVisible()
+      // Wait for blogs to be visible and expand them
+      for (let i = 0; i < testBlogs.length; i++) {
+        await page.getByTestId('viewDetailsButton').nth(i).click()
+      }
 
-      // // Logout and wait for confirmation message
-      // await page.getByTestId('logout-button').click()
-      // await expect(page.getByText('logout successful')).toBeVisible()
+      // Get all likes at once
+      const likes = await Promise.all([
+        page.getByTestId('likes-count').first().textContent(),
+        page.getByTestId('likes-count').nth(1).textContent(),
+        page.getByTestId('likes-count').nth(2).textContent(),
+      ])
 
-      // // Login in as new user
-      // await page.getByPlaceholder('username').fill('Marquez')
-      // await page.getByPlaceholder('password').fill('90victorias')
-      // await page.getByText('submit login').click()
-      // await expect(page.getByText('login successful')).toBeVisible()
-
-      // Per each blog, I need to display the details viewDetailsButton
-      await page.getByTestId('viewDetailsButton').first().click()
-      await expect(page.getByText('likes 90')).toBeVisible()
-      await page.getByTestId('viewDetailsButton').nth(1).click()
-      await expect(page.getByText('likes 33')).toBeVisible()
-      await page.getByTestId('viewDetailsButton').nth(2).click()
-      await expect(page.getByText('likes 3')).toBeVisible()
-      // likes 1
-      // 1) <button data-testid="viewDetailsButton">view</button> aka getByTestId('viewDetailsButton').first()
-      // 2) <button data-testid="viewDetailsButton">view</button> aka getByTestId('viewDetailsButton').nth(1)
-      // 3) <button data-testid="viewDetailsButton">view</button> aka getByTestId('viewDetailsButton').nth(2)
-
-      // Now I need to test the order of the texts "likes ${number}"
-      // Get likes counts using the data-testid
-      const firstLikes = await page
-        .getByTestId('likes-count')
-        .first()
-        .textContent()
-      const secondLikes = await page
-        .getByTestId('likes-count')
-        .nth(1)
-        .textContent()
-      const thirdLikes = await page
-        .getByTestId('likes-count')
-        .nth(2)
-        .textContent()
-
-      // Convert to numbers and compare
-      expect(Number(firstLikes)).toBeGreaterThan(Number(secondLikes))
-      expect(Number(secondLikes)).toBeGreaterThan(Number(thirdLikes))
+      // Verify order
+      const [first, second, third] = likes.map(Number)
+      expect(first).toBeGreaterThan(second)
+      expect(second).toBeGreaterThan(third)
     })
   })
 })
